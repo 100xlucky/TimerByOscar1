@@ -158,7 +158,7 @@
     }
 
     function addTime(sec) {
-      // ⛔ JIKA TIMER SUDAH HABIS, GIFT DIABAIKAN
+      // ⛔ TIMER HABIS = GIFT DIABAIKAN
       if (timeLeft === 0) {
         console.log("Gift ignored — timer ended");
         return;
@@ -186,7 +186,8 @@
     }
 
     /* =====================
-       KEYBOARD (BACKUP)
+       KEYBOARD (BACKUP / TEST)
+       (TIDAK dipakai di TikTok Studio)
     ====================== */
     document.addEventListener("keydown", e => {
       const k = e.key.toLowerCase();
@@ -194,6 +195,20 @@
       if (k === "l") stopTimer();
       if (k === "k") resetTimer();
       if (k === "g") addTime(ADD_TIME);
+    });
+
+    /* =====================
+       CONTROL DARI WEB LAIN
+       (UNTUK TIKTOK LIVE STUDIO)
+    ====================== */
+    window.addEventListener("storage", (e) => {
+      if (e.key !== "TIMER_ACTION") return;
+
+      if (e.newValue === "START") startTimer();
+      if (e.newValue === "STOP") stopTimer();
+      if (e.newValue === "RESET") resetTimer();
+
+      localStorage.removeItem("TIMER_ACTION");
     });
 
     /* =====================
@@ -211,7 +226,6 @@
         socket.onmessage = (msg) => {
           try {
             const payload = JSON.parse(msg.data);
-
             if (payload.event !== "gift") return;
 
             const giftName = payload.data?.giftName;
