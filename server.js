@@ -8,23 +8,26 @@ app.use(express.static("public"));
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+const MAX_TIME = 30;
+
 let state = {
-  timeLeft: 30,
+  time: MAX_TIME,
   running: false
 };
 
-function broadcast(data) {
-  const msg = JSON.stringify(data);
+function broadcast() {
+  const data = JSON.stringify(state);
   wss.clients.forEach(c => {
-    if (c.readyState === WebSocket.OPEN) c.send(msg);
+    if (c.readyState === WebSocket.OPEN) c.send(data);
   });
 }
 
 setInterval(() => {
-  if (state.running && state.timeLeft > 0) {
-    state.timeLeft--;
-    if (state.timeLeft === 0) state.running = false;
-    broadcast(state);
+  if (!state.running) return;
+  if (state.time > 0) {
+    state.time--;
+    if (state.time === 0) state.running = false;
+    broadcast();
   }
 }, 1000);
 
@@ -38,13 +41,13 @@ wss.on("connection", ws => {
     if (cmd === "STOP") state.running = false;
     if (cmd === "RESET") {
       state.running = false;
-      state.timeLeft = 30;
+      state.time = MAX_TIME;
     }
-    if (cmd === "ADD5" && state.timeLeft > 0) {
-      state.timeLeft = Math.min(state.timeLeft + 5, 30);
+    if (cmd === "ADD5" && state.time > 0) {
+      state.time = Math.min(state.time + 5, MAX_TIME);
     }
 
-    broadcast(state);
+    broadcast();
   });
 });
 
