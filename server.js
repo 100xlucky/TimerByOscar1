@@ -1,54 +1,60 @@
-const express = require("express");
-const http = require("http");
 const WebSocket = require("ws");
+const http = require("http");
 
-const app = express();
-app.use(express.static("public"));
-
-const server = http.createServer(app);
+const server = http.createServer();
 const wss = new WebSocket.Server({ server });
 
-const MAX_TIME = 30;
+let time = 30;
+let interval = null;
 
-let state = {
-  time: MAX_TIME,
-  running: false
-};
-
-function broadcast() {
-  const data = JSON.stringify(state);
+function broadcast(data) {
+  const msg = JSON.stringify(data);
   wss.clients.forEach(c => {
-    if (c.readyState === WebSocket.OPEN) c.send(data);
+    if (c.readyState === WebSocket.OPEN) c.send(msg);
   });
 }
 
-setInterval(() => {
-  if (!state.running) return;
-  if (state.time > 0) {
-    state.time--;
-    if (state.time === 0) state.running = false;
-    broadcast();
-  }
-}, 1000);
+function startTimer() {
+  if (interval) return;
+  interval = setInterval(() => {
+    if (time > 0) {
+      time--;
+      broadcast({ time });
+    } else {
+      stopTimer();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(interval);
+  interval = null;
+}
 
 wss.on("connection", ws => {
-  ws.send(JSON.stringify(state));
+  // kirim waktu awal
+  ws.send(JSON.stringify({ time }));
 
   ws.on("message", msg => {
     const cmd = msg.toString();
 
-    if (cmd === "START") state.running = true;
-    if (cmd === "STOP") state.running = false;
-    if (cmd === "RESET") {
-      state.running = false;
-      state.time = MAX_TIME;
-    }
-    if (cmd === "ADD5" && state.time > 0) {
-      state.time = Math.min(state.time + 5, MAX_TIME);
-    }
+    if (cmd === "START") startTimer();
+    if (cmd === "STOP") stopTimer();
 
-    broadcast();
+    if (cmd === "ADD_5") {
+      if (time === 0) return;
+      time = Math.min(time + 5, 30);
+
+      // 🔴 INI KUNCI NYA
+      broadcast({
+        time,
+        added: 5   // ⬅️ SINYAL BUAT +5 KUNING
+      });
+    }
   });
 });
 
-server.listen(process.env.PORT || 3000);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});
