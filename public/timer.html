@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Timer Live IndoFinity</title>
+<style>
+body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:transparent;font-family:Arial}
+#container{width:360px;height:520px;background:#2a242c;border-radius:22px;padding:18px}
+#timer{font-size:56px;color:#fff;text-align:center}
+</style>
+</head>
+
+<body>
+<div id="container">
+  <div id="timer">30</div>
+</div>
+
+<script>
+const MAX_TIME = 30;
+const ADD_TIME = 5;
+
+/* 🔴 GANTI INI SETELAH DEPLOY */
+const CONTROL_WS = "wss://GANTI-DENGAN-URL-RAILWAY-MU";
+const INDO_WS = "ws://localhost:62024";
+
+let timeLeft = MAX_TIME;
+let interval = null;
+
+function update(){
+  document.getElementById("timer").textContent = timeLeft;
+}
+
+function start(){
+  if(interval) return;
+  interval = setInterval(()=>{
+    if(timeLeft>0){timeLeft--;update();}
+    else{stop();}
+  },1000);
+}
+
+function stop(){
+  clearInterval(interval);
+  interval=null;
+}
+
+function reset(){
+  stop();
+  timeLeft=MAX_TIME;
+  update();
+}
+
+function add(sec){
+  if(timeLeft===0) return;
+  timeLeft=Math.min(timeLeft+sec,MAX_TIME);
+  update();
+}
+
+/* CONTROL WEBSOCKET */
+const control = new WebSocket(CONTROL_WS);
+control.onmessage = m=>{
+  if(m.data==="START") start();
+  if(m.data==="STOP") stop();
+  if(m.data==="RESET") reset();
+};
+
+/* INDOFINITY */
+const indo = new WebSocket(INDO_WS);
+indo.onmessage = m=>{
+  const p=JSON.parse(m.data);
+  if(p.event==="gift" && p.data?.giftName==="Finger Heart"){
+    add(ADD_TIME*(p.data.repeatCount||1));
+  }
+};
+
+update();
+</script>
+</body>
+</html>
