@@ -1,62 +1,29 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Timer Control Panel</title>
+<title>Control</title>
 <style>
-body{
-  margin:0;
-  height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#111;
-  font-family:Arial;
-}
-.panel{
-  background:#1f1f1f;
-  padding:20px;
-  border-radius:12px;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-button{
-  font-size:18px;
-  padding:14px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  color:#fff;
-}
-.start{background:#2ecc71}
-.stop{background:#e74c3c}
-.add{background:#f1c40f;color:#000}
-.reset{background:#3498db}
-button:active{transform:scale(0.96)}
+body{background:#111;color:#fff;font-family:Arial;padding:20px}
+button{padding:12px 18px;margin:6px;font-size:16px}
 </style>
 </head>
-
 <body>
 
-<div class="panel">
-  <button class="start" onclick="send('START')">START</button>
-  <button class="stop" onclick="send('STOP')">STOP</button>
-  <button class="add" onclick="send('ADD_5')">+5 DETIK</button>
-  <button class="reset" onclick="send('RESET')">RESET</button>
-</div>
+<button onclick="send('START')">START</button>
+<button onclick="send('STOP')">STOP</button>
+<button onclick="send('ADD5')">+5 DETIK</button>
+<button onclick="send('RESET')">RESET</button>
 
 <script>
-/* 🔴 GANTI SETELAH DEPLOY RENDER */
-const WS_URL = "wss://timerbyoscar.onrender.com";
-const ws = new WebSocket(WS_URL);
+const ws = new WebSocket(
+  (location.protocol === "https:" ? "wss://" : "ws://") + location.host
+);
 
 function send(cmd){
-  if(ws.readyState === 1){
-    ws.send(cmd);
-  }
+  ws.send(cmd);
 }
 </script>
-
 </body>
 </html>
+
