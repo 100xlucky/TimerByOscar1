@@ -4,93 +4,35 @@
 <meta charset="UTF-8">
 <title>Timer Live IndoFinity</title>
 <style>
-body{
-  margin:0;
-  height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:transparent;
-  font-family:Arial;
-}
-#container{
-  width:360px;
-  height:520px;
-  background:#2a242c;
-  border-radius:22px;
-  padding:18px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-#timer{
-  font-size:56px;
-  color:#fff;
-}
+body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:transparent;font-family:Inter,Arial}
+#container{width:360px;height:520px;background:#2a242c;border-radius:22px;padding:18px;box-shadow:0 15px 40px rgba(0,0,0,.6)}
+#timerBox{height:90px;background:#3a343d;border-radius:14px;display:flex;align-items:center;justify-content:center}
+#timer{font-size:56px;font-weight:700;color:#fff}
+#supportBox{margin-top:24px;height:calc(100% - 114px);background:#241f26;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#aaa}
 </style>
 </head>
 
 <body>
 <div id="container">
-  <div id="timer">30</div>
+  <div id="timerBox">
+    <div id="timer">30</div>
+  </div>
+  <div id="supportBox">IndoFinity connected</div>
 </div>
 
 <script>
-const MAX_TIME = 30;
-const ADD_TIME = 5;
-
-/* 🔴 GANTI SETELAH DEPLOY RENDER */
-const WS_URL = "wss://timerbyoscar.onrender.com";
-
-let timeLeft = MAX_TIME;
-let interval = null;
-
 const timerEl = document.getElementById("timer");
+const ws = new WebSocket(
+  (location.protocol === "https:" ? "wss://" : "ws://") + location.host
+);
 
-function update(){
-  timerEl.textContent = timeLeft;
-}
+ws.onmessage = e => {
+  const s = JSON.parse(e.data);
+  timerEl.textContent = s.timeLeft < 10 ? "0"+s.timeLeft : s.timeLeft;
 
-function start(){
-  if(interval) return;
-  interval = setInterval(()=>{
-    if(timeLeft > 0){
-      timeLeft--;
-      update();
-    }else{
-      stop();
-    }
-  },1000);
-}
-
-function stop(){
-  clearInterval(interval);
-  interval = null;
-}
-
-function reset(){
-  stop();
-  timeLeft = MAX_TIME;
-  update();
-}
-
-function add(sec){
-  if(timeLeft === 0) return;
-  timeLeft = Math.min(timeLeft + sec, MAX_TIME);
-  update();
-}
-
-/* 🔌 WEBSOCKET CONTROL */
-const ws = new WebSocket(WS_URL);
-
-ws.onmessage = e=>{
-  if(e.data === "START") start();
-  if(e.data === "STOP") stop();
-  if(e.data === "RESET") reset();
-  if(e.data === "ADD_5") add(ADD_TIME);
+  if (s.timeLeft <= 10) timerEl.style.color = "#ff4d4d";
+  else timerEl.style.color = "#ffffff";
 };
-
-update();
 </script>
 </body>
 </html>
