@@ -15,7 +15,6 @@
       font-family: Inter, Arial, sans-serif;
     }
 
-    /* KOLAM UTAMA */
     #container {
       width: 360px;
       height: 520px;
@@ -26,7 +25,6 @@
       box-sizing: border-box;
     }
 
-    /* KOLAM TIMER */
     #timerBox {
       width: 100%;
       height: 90px;
@@ -50,7 +48,6 @@
       letter-spacing: 2px;
     }
 
-    /* +5 DI DALAM KOLAM */
     #plus {
       margin-left: 12px;
       font-size: 26px;
@@ -58,7 +55,7 @@
       color: #ffd84d;
       opacity: 0;
       transform: translateY(6px);
-      transition: all 0.35s ease;
+      transition: all 0.3s ease;
       pointer-events: none;
     }
 
@@ -67,7 +64,6 @@
       transform: translateY(-6px);
     }
 
-    /* KOLAM BAWAH */
     #supportBox {
       width: 100%;
       height: calc(100% - 114px);
@@ -76,8 +72,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: rgba(255,255,255,0.3);
-      font-size: 14px;
+      color: rgba(255,255,255,0.35);
+      font-size: 13px;
     }
 
     .shake {
@@ -105,31 +101,34 @@
     </div>
 
     <div id="supportBox">
-      area supporter
+      IndoFinity connected
     </div>
   </div>
 
   <script>
-    /* =============================
+    /* =====================
        KONFIGURASI
-    ============================== */
+    ====================== */
     const MAX_TIME = 30;
-    const GIFT_TIME = 5; // Finger Heart = +5 detik
+    const ADD_TIME = 5;
+    const WS_URL = "ws://localhost:62024";
 
     let timeLeft = MAX_TIME;
     let interval = null;
+    let socket = null;
 
     const timerEl = document.getElementById("timer");
     const plusEl = document.getElementById("plus");
     const container = document.getElementById("container");
+    const supportBox = document.getElementById("supportBox");
 
     const audio = new Audio(
       "https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3"
     );
 
-    /* =============================
+    /* =====================
        TIMER CORE
-    ============================== */
+    ====================== */
     function updateDisplay() {
       timerEl.textContent = timeLeft < 10 ? "0" + timeLeft : timeLeft;
       timerEl.style.color = timeLeft <= 10 ? "#ff4d4d" : "#ffffff";
@@ -159,6 +158,12 @@
     }
 
     function addTime(sec) {
+      // ⛔ JIKA TIMER SUDAH HABIS, GIFT DIABAIKAN
+      if (timeLeft === 0) {
+        console.log("Gift ignored — timer ended");
+        return;
+      }
+
       const before = timeLeft;
       timeLeft = Math.min(timeLeft + sec, MAX_TIME);
       updateDisplay();
@@ -171,7 +176,7 @@
         try {
           audio.currentTime = 0;
           audio.play();
-        } catch (e) {}
+        } catch(e) {}
 
         setTimeout(() => {
           plusEl.classList.remove("show");
@@ -180,35 +185,62 @@
       }
     }
 
-    /* =============================
-       KEYBOARD (CADANGAN)
-    ============================== */
+    /* =====================
+       KEYBOARD (BACKUP)
+    ====================== */
     document.addEventListener("keydown", e => {
       const k = e.key.toLowerCase();
       if (k === "o") startTimer();
       if (k === "l") stopTimer();
       if (k === "k") resetTimer();
-      if (k === "g") addTime(5);
+      if (k === "g") addTime(ADD_TIME);
     });
 
-    /* =============================
-       INDOFINITY GIFT LISTENER
-       Finger Heart → +5 detik
-    ============================== */
-    window.addEventListener("message", (event) => {
-      const data = event.data;
-      if (!data) return;
+    /* =====================
+       INDOFINITY WEBSOCKET
+    ====================== */
+    function connectWebSocket() {
+      try {
+        socket = new WebSocket(WS_URL);
 
-      if (data.type !== "gift") return;
+        socket.onopen = () => {
+          supportBox.textContent = "IndoFinity connected";
+          console.log("WS connected");
+        };
 
-      const giftName = data.giftName;
-      const giftCount = data.giftCount || 1;
+        socket.onmessage = (msg) => {
+          try {
+            const payload = JSON.parse(msg.data);
 
-      if (giftName === "Finger Heart") {
-        addTime(GIFT_TIME * giftCount);
+            if (payload.event !== "gift") return;
+
+            const giftName = payload.data?.giftName;
+            const count = payload.data?.repeatCount || 1;
+
+            if (giftName === "Finger Heart") {
+              addTime(ADD_TIME * count);
+              console.log("Finger Heart x" + count);
+            }
+          } catch(err) {
+            console.error("WS parse error", err);
+          }
+        };
+
+        socket.onclose = () => {
+          supportBox.textContent = "IndoFinity disconnected";
+          setTimeout(connectWebSocket, 3000);
+        };
+
+        socket.onerror = () => {
+          socket.close();
+        };
+
+      } catch(e) {
+        console.error("WS failed", e);
       }
-    });
+    }
 
+    connectWebSocket();
     updateDisplay();
   </script>
 
