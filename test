@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Timer Live 30 Detik</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    /* KOLAM UTAMA */
+    #container {
+      width: 360px;
+      height: 520px;
+      background: #2a242c;
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+      box-sizing: border-box;
+    }
+
+    /* KOTAK TIMER (KOLAM HITAM) */
+    #timerBox {
+      width: 100%;
+      height: 90px;
+      background: #3a343d;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    #timerWrapper {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    #timer {
+      font-size: 56px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 2px;
+    }
+
+    /* +5 DI DALAM KOLAM */
+    #plus {
+      margin-left: 12px;
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffd84d;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: all 0.35s ease;
+      pointer-events: none;
+    }
+
+    #plus.show {
+      opacity: 1;
+      transform: translateY(-6px);
+    }
+
+    /* KOLAM BAWAH */
+    #supportBox {
+      width: 100%;
+      height: calc(100% - 114px);
+      background: #241f26;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.3);
+      font-size: 14px;
+    }
+
+    .shake {
+      animation: shake 0.25s;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-4px); }
+      100% { transform: translateX(0); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="container">
+    <div id="timerBox">
+      <div id="timerWrapper">
+        <div id="timer">30</div>
+        <div id="plus">+5</div>
+      </div>
+    </div>
+
+    <div id="supportBox">
+      area supporter
+    </div>
+  </div>
+
+  <script>
+    const MAX_TIME = 30;
+    let timeLeft = MAX_TIME;
+    let interval = null;
+
+    const timerEl = document.getElementById('timer');
+    const plusEl = document.getElementById('plus');
+    const container = document.getElementById('container');
+
+    const audio = new Audio(
+      'https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3'
+    );
+
+    function updateDisplay() {
+      timerEl.textContent = timeLeft < 10 ? '0' + timeLeft : timeLeft;
+      timerEl.style.color = timeLeft <= 10 ? '#ff4d4d' : '#ffffff';
+    }
+
+    function startTimer() {
+      if (interval) return;
+      interval = setInterval(() => {
+        if (timeLeft > 0) {
+          timeLeft--;
+          updateDisplay();
+        } else {
+          stopTimer();
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(interval);
+      interval = null;
+    }
+
+    function resetTimer() {
+      stopTimer();
+      timeLeft = MAX_TIME;
+      updateDisplay();
+    }
+
+    function addTime(sec) {
+      const before = timeLeft;
+      timeLeft = Math.min(timeLeft + sec, MAX_TIME);
+      updateDisplay();
+
+      if (timeLeft > before) {
+        plusEl.textContent = `+${sec}`;
+        plusEl.classList.add('show');
+        container.classList.add('shake');
+
+        try {
+          audio.currentTime = 0;
+          audio.play();
+        } catch (e) {}
+
+        setTimeout(() => {
+          plusEl.classList.remove('show');
+          container.classList.remove('shake');
+        }, 900);
+      }
+    }
+
+    /* KONTROL KEYBOARD (BUAT LIVE) */
+    document.addEventListener('keydown', e => {
+      const k = e.key.toLowerCase();
+      if (k === 'o') startTimer();   // start
+      if (k === 'l') stopTimer();    // stop
+      if (k === 'k') resetTimer();   // reset
+      if (k === 'g') addTime(5);     // +5 detik
+    });
+
+    updateDisplay();
+  </script>
+
+</body>
+</html>
