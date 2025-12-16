@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Timer Live IndoFinity</title>
+<title>Timer</title>
 <style>
 body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:transparent;font-family:Inter,Arial}
 #container{width:360px;height:520px;background:#2a242c;border-radius:22px;padding:18px;box-shadow:0 15px 40px rgba(0,0,0,.6)}
@@ -14,24 +14,21 @@ body{margin:0;height:100vh;display:flex;align-items:center;justify-content:cente
 
 <body>
 <div id="container">
-  <div id="timerBox">
-    <div id="timer">30</div>
-  </div>
+  <div id="timerBox"><div id="timer">30</div></div>
   <div id="supportBox">IndoFinity connected</div>
 </div>
 
 <script>
-const timerEl = document.getElementById("timer");
+const timer = document.getElementById("timer");
+
 const ws = new WebSocket(
   (location.protocol === "https:" ? "wss://" : "ws://") + location.host
 );
 
 ws.onmessage = e => {
   const s = JSON.parse(e.data);
-  timerEl.textContent = s.timeLeft < 10 ? "0"+s.timeLeft : s.timeLeft;
-
-  if (s.timeLeft <= 10) timerEl.style.color = "#ff4d4d";
-  else timerEl.style.color = "#ffffff";
+  timer.textContent = s.time < 10 ? "0"+s.time : s.time;
+  timer.style.color = s.time <= 10 ? "#ff4d4d" : "#ffffff";
 };
 </script>
 </body>
