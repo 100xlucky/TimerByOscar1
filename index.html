@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Timer Live 30 Detik</title>
+  <title>Timer Live IndoFinity</title>
 
   <style>
     body {
@@ -26,7 +26,7 @@
       box-sizing: border-box;
     }
 
-    /* KOTAK TIMER (KOLAM HITAM) */
+    /* KOLAM TIMER */
     #timerBox {
       width: 100%;
       height: 90px;
@@ -41,7 +41,6 @@
     #timerWrapper {
       display: flex;
       align-items: center;
-      position: relative;
     }
 
     #timer {
@@ -111,21 +110,29 @@
   </div>
 
   <script>
+    /* =============================
+       KONFIGURASI
+    ============================== */
     const MAX_TIME = 30;
+    const GIFT_TIME = 5; // Finger Heart = +5 detik
+
     let timeLeft = MAX_TIME;
     let interval = null;
 
-    const timerEl = document.getElementById('timer');
-    const plusEl = document.getElementById('plus');
-    const container = document.getElementById('container');
+    const timerEl = document.getElementById("timer");
+    const plusEl = document.getElementById("plus");
+    const container = document.getElementById("container");
 
     const audio = new Audio(
-      'https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3'
+      "https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3"
     );
 
+    /* =============================
+       TIMER CORE
+    ============================== */
     function updateDisplay() {
-      timerEl.textContent = timeLeft < 10 ? '0' + timeLeft : timeLeft;
-      timerEl.style.color = timeLeft <= 10 ? '#ff4d4d' : '#ffffff';
+      timerEl.textContent = timeLeft < 10 ? "0" + timeLeft : timeLeft;
+      timerEl.style.color = timeLeft <= 10 ? "#ff4d4d" : "#ffffff";
     }
 
     function startTimer() {
@@ -158,8 +165,8 @@
 
       if (timeLeft > before) {
         plusEl.textContent = `+${sec}`;
-        plusEl.classList.add('show');
-        container.classList.add('shake');
+        plusEl.classList.add("show");
+        container.classList.add("shake");
 
         try {
           audio.currentTime = 0;
@@ -167,19 +174,39 @@
         } catch (e) {}
 
         setTimeout(() => {
-          plusEl.classList.remove('show');
-          container.classList.remove('shake');
+          plusEl.classList.remove("show");
+          container.classList.remove("shake");
         }, 900);
       }
     }
 
-    /* KONTROL KEYBOARD (BUAT LIVE) */
-    document.addEventListener('keydown', e => {
+    /* =============================
+       KEYBOARD (CADANGAN)
+    ============================== */
+    document.addEventListener("keydown", e => {
       const k = e.key.toLowerCase();
-      if (k === 'o') startTimer();   // start
-      if (k === 'l') stopTimer();    // stop
-      if (k === 'k') resetTimer();   // reset
-      if (k === 'g') addTime(5);     // +5 detik
+      if (k === "o") startTimer();
+      if (k === "l") stopTimer();
+      if (k === "k") resetTimer();
+      if (k === "g") addTime(5);
+    });
+
+    /* =============================
+       INDOFINITY GIFT LISTENER
+       Finger Heart → +5 detik
+    ============================== */
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+      if (!data) return;
+
+      if (data.type !== "gift") return;
+
+      const giftName = data.giftName;
+      const giftCount = data.giftCount || 1;
+
+      if (giftName === "Finger Heart") {
+        addTime(GIFT_TIME * giftCount);
+      }
     });
 
     updateDisplay();
