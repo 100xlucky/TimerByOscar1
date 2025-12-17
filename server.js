@@ -1,3 +1,4 @@
+const { WebcastPushConnection } = require("tiktok-live-connector");
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
@@ -9,6 +10,9 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const MAX_TIME = 30;
+const tiktokUsername = "USERNAME_TIKTOK_KAMU";
+const tiktok = new WebcastPushConnection(tiktokUsername);
+
 
 let state = {
   time: MAX_TIME,
@@ -65,5 +69,17 @@ wss.on("connection", ws => {
     broadcast();
   });
 });
+tiktok.connect()
+  .then(() => console.log("TikTok connected"))
+  .catch(err => console.error("TikTok error", err));
 
+tiktok.on("gift", data => {
+  if (data.giftName !== "Finger Heart") return;
+
+  state.leader = data.uniqueId;
+  state.running = true;
+  state.time = MAX_TIME;
+
+  broadcast();
+});
 server.listen(process.env.PORT || 3000);
