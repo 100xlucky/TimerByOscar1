@@ -12,8 +12,10 @@ const MAX_TIME = 30;
 
 let state = {
   time: MAX_TIME,
-  running: false
+  running: false,
+  leader: null
 };
+
 
 function broadcast() {
   const data = JSON.stringify(state);
@@ -34,10 +36,17 @@ setInterval(() => {
 wss.on("connection", ws => {
   ws.send(JSON.stringify(state));
 
-  ws.on("message", msg => {
+  ws.on("message", msg => {if (cmd.startsWith("GIFT:")) {
+  const username = cmd.split(":")[1];
+  state.leader = username;
+  state.running = true;
+  state.time = MAX_TIME;
+  broadcast();
+  return;
+}
+
     const cmd = msg.toString();
 
-    if (cmd === "START") state.running = true;
     if (cmd === "STOP") state.running = false;
     if (cmd === "RESET") {
       state.running = false;
