@@ -16,7 +16,6 @@ let state = {
   leader: null
 };
 
-
 function broadcast() {
   const data = JSON.stringify(state);
   wss.clients.forEach(c => {
@@ -26,9 +25,12 @@ function broadcast() {
 
 setInterval(() => {
   if (!state.running) return;
+
   if (state.time > 0) {
     state.time--;
-    if (state.time === 0) state.running = false;
+    if (state.time === 0) {
+      state.running = false;
+    }
     broadcast();
   }
 }, 1000);
@@ -36,22 +38,26 @@ setInterval(() => {
 wss.on("connection", ws => {
   ws.send(JSON.stringify(state));
 
-  ws.on("message", msg => {if (cmd.startsWith("GIFT:")) {
-  const username = cmd.split(":")[1];
-  state.leader = username;
-  state.running = true;
-  state.time = MAX_TIME;
-  broadcast();
-  return;
-}
-
+  ws.on("message", msg => {
     const cmd = msg.toString();
 
+    if (cmd.startsWith("GIFT:")) {
+      const username = cmd.split(":")[1];
+      state.leader = username;
+      state.running = true;
+      state.time = MAX_TIME;
+      broadcast();
+      return;
+    }
+
     if (cmd === "STOP") state.running = false;
+
     if (cmd === "RESET") {
       state.running = false;
       state.time = MAX_TIME;
+      state.leader = null;
     }
+
     if (cmd === "ADD5" && state.time > 0) {
       state.time = Math.min(state.time + 5, MAX_TIME);
     }
