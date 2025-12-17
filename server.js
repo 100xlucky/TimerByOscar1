@@ -13,7 +13,6 @@ const MAX_TIME = 30;
 const tiktokUsername = "USERNAME_TIKTOK_KAMU";
 const tiktok = new WebcastPushConnection(tiktokUsername);
 
-
 let state = {
   time: MAX_TIME,
   running: false,
@@ -29,14 +28,16 @@ function broadcast() {
 
 setInterval(() => {
   if (!state.running) return;
+  if (state.time <= 0) return;
 
-  if (state.time > 0) {
-    state.time--;
-    if (state.time === 0) {
-      state.running = false;
-    }
-    broadcast();
+  state.time--;
+
+  if (state.time <= 0) {
+    state.time = 0;
+    state.running = false;
   }
+
+  broadcast();
 }, 1000);
 
 wss.on("connection", ws => {
@@ -47,14 +48,18 @@ wss.on("connection", ws => {
 
     if (cmd.startsWith("GIFT:")) {
       const username = cmd.split(":")[1];
+
       state.leader = username;
-      state.running = true;
       state.time = MAX_TIME;
+      state.running = true;
+
       broadcast();
       return;
     }
 
-    if (cmd === "STOP") state.running = false;
+    if (cmd === "STOP") {
+      state.running = false;
+    }
 
     if (cmd === "RESET") {
       state.running = false;
@@ -62,13 +67,14 @@ wss.on("connection", ws => {
       state.leader = null;
     }
 
-    if (cmd === "ADD5" && state.time > 0) {
+    if (cmd === "ADD5" && state.running) {
       state.time = Math.min(state.time + 5, MAX_TIME);
     }
 
     broadcast();
   });
 });
+
 tiktok.connect()
   .then(() => console.log("TikTok connected"))
   .catch(err => console.error("TikTok error", err));
@@ -77,9 +83,10 @@ tiktok.on("gift", data => {
   if (data.giftName !== "Finger Heart") return;
 
   state.leader = data.uniqueId;
-  state.running = true;
   state.time = MAX_TIME;
+  state.running = true;
 
   broadcast();
 });
+
 server.listen(process.env.PORT || 3000);
