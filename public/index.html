@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bộ Đếm (T.T)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background-color: #ffffff; padding: 10px; text-align: center; color: #000; }
+        .header { display: flex; align-items: center; justify-content: space-between; font-size: 12px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .user-box { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 8px 0; font-weight: bold; font-size: 15px; }
+        .stats { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; margin-bottom: 10px; }
+        .timer-main { font-size: 64px; font-weight: bold; line-height: 1; margin: 15px 0 10px 0; letter-spacing: -2px; }
+        .target-time { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 12px; }
+        .buttons { display: flex; justify-content: center; gap: 4px; margin-bottom: 10px; }
+        .btn { padding: 4px 8px; font-size: 11px; font-weight: bold; border: none; border-radius: 3px; color: white; cursor: pointer; }
+        .btn-red { background-color: #ff4d4f; }
+        .btn-orange { background-color: #ffa940; }
+        .btn-gray { background-color: #8c8c8c; }
+        .btn-green { background-color: #73d13d; }
+        .input-box { margin-top: 10px; display: flex; justify-content: center; gap: 5px; }
+        .input-box input { padding: 5px; font-size: 12px; border: 1px solid #ccc; border-radius: 3px; width: 140px; }
+        .input-box button { padding: 5px 10px; font-size: 12px; background: #000; color: #fff; border: none; border-radius: 3px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <span>Bộ Đếm (T.T)</span>
+        <span style="font-size: 10px; color: #666;">onrender.com</span>
+    </div>
+
+    <div class="input-box">
+        <input type="text" id="username" placeholder="Yayıncı Adı">
+        <button onclick="startTimer()">Başlat</button>
+    </div>
+
+    <div class="user-box">
+        <span style="color: #1890ff;">@</span><span id="disp-user">username</span>
+    </div>
+
+    <div class="stats">
+        <span>🎁 4000/500</span>
+        <span>👥 <span id="viewers">2757</span></span>
+    </div>
+
+    <div class="timer-main" id="timer">0.0</div>
+    <div class="target-time" id="clock">15:35:31</div>
+
+    <div class="buttons">
+        <button class="btn btn-red" onclick="adjustOffset(-50)">-0.05s</button>
+        <button class="btn btn-orange" onclick="adjustOffset(-10)">-0.01s</button>
+        <button class="btn btn-gray" onclick="adjustOffset(0)">0.00s</button>
+        <button class="btn btn-green" onclick="adjustOffset(10)">+0.01s</button>
+    </div>
+
+    <script>
+        let offset = 0;
+
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').innerText = `${h}:${m}:${s}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function adjustOffset(ms) {
+            offset += ms;
+        }
+
+        function startTimer() {
+            const user = document.getElementById('username').value;
+            if(user) document.getElementById('disp-user').innerText = user;
+            
+            let timeLeft = 120.0;
+            const interval = setInterval(() => {
+                timeLeft -= 0.1;
+                if (timeLeft <= 0) {
+                    document.getElementById('timer').innerText = "0.0";
+                    clearInterval(interval);
+                } else {
+                    document.getElementById('timer').innerText = timeLeft.toFixed(1);
+                }
+            }, 100);
+        }
+    </script>
+</body>
+</html>
