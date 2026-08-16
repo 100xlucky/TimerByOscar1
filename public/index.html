@@ -75,7 +75,8 @@
             const user = document.getElementById('username').value;
             if(user) document.getElementById('disp-user').innerText = user;
             
-            let timeLeft = 120.0;
+            // Burayı 10.0 saniye olarak güncelledim
+            let timeLeft = 10.0;
             const interval = setInterval(() => {
                 timeLeft -= 0.1;
                 if (timeLeft <= 0) {
