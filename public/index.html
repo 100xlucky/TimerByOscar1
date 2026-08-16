@@ -10,7 +10,7 @@
         .header { display: flex; align-items: center; justify-content: space-between; font-size: 12px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .user-box { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 8px 0; font-weight: bold; font-size: 15px; }
         .stats { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; margin-bottom: 10px; }
-        .timer-main { font-size: 64px; font-weight: bold; line-height: 1; margin: 15px 0 10px 0; letter-spacing: -2px; color: #d9363e; }
+        .timer-main { font-size: 54px; font-weight: bold; line-height: 1; margin: 15px 0 10px 0; letter-spacing: -2px; color: #d9363e; min-height: 60px; }
         .target-time { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 12px; }
         .buttons { display: flex; justify-content: center; gap: 4px; margin-bottom: 10px; }
         .btn { padding: 4px 8px; font-size: 11px; font-weight: bold; border: none; border-radius: 3px; color: white; cursor: pointer; }
@@ -44,7 +44,7 @@
         <span>👥 <span id="viewers">2757</span></span>
     </div>
 
-    <div class="timer-main" id="timer">0.0</div>
+    <div class="timer-main" id="timer">10.0</div>
     <div class="target-time" id="clock">00:00:00</div>
 
     <div class="buttons">
@@ -78,10 +78,8 @@
             
             if(timerInterval) clearInterval(timerInterval);
 
-            // Başlattığın an 10 saniyelik süreyi öne çekerek hızlı başlatır
             let timeLeft = 10.0 + customOffset;
             
-            // Hızlandırılmış adımlarla geriye sayım
             timerInterval = setInterval(() => {
                 timeLeft -= 0.1;
                 
@@ -91,7 +89,7 @@
                 } else {
                     document.getElementById('timer').innerText = timeLeft.toFixed(1);
                 }
-            }, 85); // 100ms yerine 85ms çalışarak zamanı ileri kaydırır (önden gider)
+            }, 80);
         }
     </script>
 </body>
