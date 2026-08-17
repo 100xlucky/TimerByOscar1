@@ -10,21 +10,24 @@ const io = new Server(server);
 app.use(express.static('public'));
 
 io.on('connection', (socket) => {
-    let tiktokConnection;
+    let tiktokConnection = null;
 
     socket.on('setUniqueId', (uniqueId) => {
         if (tiktokConnection) {
-            tiktokConnection.disconnect();
+            try { tiktokConnection.disconnect(); } catch(e) {}
         }
 
-        tiktokConnection = new WebcastPushConnection(uniqueId);
+        // TikTok bağlantısını başlat
+        tiktokConnection = new WebcastPushConnection(uniqueId, {
+            processInitialData: false,
+            enableExtendedGiftInfo: true
+        });
 
         tiktokConnection.connect().then(state => {
-            socket.emit('streamData', {
-                viewerCount: state.viewerCount
-            });
+            socket.emit('streamData', { viewerCount: state.viewerCount });
         }).catch(err => {
-            socket.emit('error', 'Yayına bağlanılamadı');
+            console.log('Bağlantı hatası:', err.message);
+            socket.emit('error', 'Yayına bağlanılamadı veya yayın kapalı!');
         });
 
         tiktokConnection.on('roomUser', msg => {
@@ -34,11 +37,22 @@ io.on('connection', (socket) => {
         tiktokConnection.on('envelope', data => {
             socket.emit('chestEvent', data);
         });
+
+        tiktokConnection.on('streamEnd', () => {
+            socket.emit('error', 'Yayın sona erdi.');
+        });
     });
 
     socket.on('disconnect', () => {
-        if (tiktokConnection) tiktokConnection.disconnect();
+        if (tiktokConnection) {
+            try { tiktokConnection.disconnect(); } catch(e) {}
+        }
     });
+});
+
+// Sunucunun çökmesini engelleyen güvenlik önlemi
+process.on('uncaughtException', (err) => {
+    console.error('Yakalanmayan hata:', err);
 });
 
 const PORT = process.env.PORT || 3000;
