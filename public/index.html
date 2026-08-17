@@ -3,94 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bộ Đếm (T.T)</title>
+    <title>TikTok Live Sync</title>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body { background-color: #ffffff; padding: 10px; text-align: center; color: #000; }
-        .header { display: flex; align-items: center; justify-content: space-between; font-size: 12px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .user-box { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 8px 0; font-weight: bold; font-size: 15px; }
-        .stats { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; margin-bottom: 10px; }
-        .timer-main { font-size: 54px; font-weight: bold; line-height: 1; margin: 15px 0 10px 0; letter-spacing: -2px; color: #d9363e; min-height: 60px; }
-        .target-time { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 12px; }
-        .buttons { display: flex; justify-content: center; gap: 4px; margin-bottom: 10px; }
-        .btn { padding: 4px 8px; font-size: 11px; font-weight: bold; border: none; border-radius: 3px; color: white; cursor: pointer; }
-        .btn-red { background-color: #ff4d4f; }
-        .btn-orange { background-color: #ffa940; }
-        .btn-gray { background-color: #8c8c8c; }
-        .btn-green { background-color: #73d13d; }
-        .input-box { margin-top: 10px; display: flex; justify-content: center; gap: 5px; }
-        .input-box input { padding: 5px; font-size: 12px; border: 1px solid #ccc; border-radius: 3px; width: 140px; }
-        .input-box button { padding: 5px 10px; font-size: 12px; background: #000; color: #fff; border: none; border-radius: 3px; cursor: pointer; }
+        body { background: #111; color: #fff; font-family: sans-serif; text-align: center; padding: 15px; }
+        .timer { font-size: 60px; font-weight: bold; color: #ff3e3e; margin: 15px 0; }
+        .info { font-size: 14px; color: #aaa; margin-bottom: 10px; }
+        input, button { padding: 8px 12px; font-size: 14px; border-radius: 4px; border: none; }
+        button { background: #ff3e3e; color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <span>Bộ Đếm (T.T)</span>
-        <span style="font-size: 10px; color: #666;">onrender.com</span>
+    <div>
+        <input type="text" id="username" placeholder="Yayıncı Kullanıcı Adı">
+        <button onclick="connectLive()">Bağlan</button>
     </div>
 
-    <div class="input-box">
-        <input type="text" id="username" placeholder="Yayıncı Adı">
-        <button onclick="startAdvancedTimer()">Başlat</button>
+    <div class="info">
+        👥 İzleyici: <span id="viewers">0</span> | 🎁 Sandık: <span id="chestInfo">Bekleniyor...</span>
     </div>
 
-    <div class="user-box">
-        <span style="color: #1890ff;">@</span><span id="disp-user">username</span>
-    </div>
-
-    <div class="stats">
-        <span>🎁 4000/500</span>
-        <span>👥 <span id="viewers">2757</span></span>
-    </div>
-
-    <div class="timer-main" id="timer">10.0</div>
-    <div class="target-time" id="clock">00:00:00</div>
-
-    <div class="buttons">
-        <button class="btn btn-red" onclick="adjustOffset(-0.50)">-0.5s</button>
-        <button class="btn btn-orange" onclick="adjustOffset(-0.10)">-0.1s</button>
-        <button class="btn btn-gray" onclick="adjustOffset(0)">0.00s</button>
-        <button class="btn btn-green" onclick="adjustOffset(0.10)">+0.1s</button>
-    </div>
+    <div class="timer" id="timer">10.0</div>
 
     <script>
-        let customOffset = 0;
-        let timerInterval = null;
+        const socket = io();
 
-        function updateClock() {
-            const now = new Date();
-            const h = String(now.getHours()).padStart(2, '0');
-            const m = String(now.getMinutes()).padStart(2, '0');
-            const s = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('clock').innerText = `${h}:${m}:${s}`;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        function adjustOffset(val) {
-            customOffset += val;
-        }
-
-        function startAdvancedTimer() {
+        function connectLive() {
             const user = document.getElementById('username').value;
-            if(user) document.getElementById('disp-user').innerText = user;
-            
-            if(timerInterval) clearInterval(timerInterval);
-
-            let timeLeft = 10.0 + customOffset;
-            
-            timerInterval = setInterval(() => {
-                timeLeft -= 0.1;
-                
-                if (timeLeft <= 0) {
-                    document.getElementById('timer').innerText = "AÇ!";
-                    clearInterval(timerInterval);
-                } else {
-                    document.getElementById('timer').innerText = timeLeft.toFixed(1);
-                }
-            }, 80);
+            if (user) {
+                socket.emit('setUniqueId', user);
+            }
         }
+
+        socket.on('updateViewers', (count) => {
+            document.getElementById('viewers').innerText = count;
+        });
+
+        socket.on('chestEvent', (data) => {
+            document.getElementById('chestInfo').innerText = `${data.coins || 0} Jeton`;
+        });
     </script>
 </body>
 </html>
